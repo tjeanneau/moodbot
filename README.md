@@ -1,6 +1,6 @@
-# Mangrove Bot Boilerplate
+# Mangrove Mood
 
-A boilerplate for Mangrove Bots in Node.js.
+A mood bot to display each day the mood's team.
 
 ## Usages
 
