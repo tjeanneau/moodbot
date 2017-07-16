@@ -1,5 +1,5 @@
 {
-  "name": "bot-boilerplate",
+  "name": "mangrove-mood",
   "private": true,
   "scripts": {
     "start": "nodemon main/index.js --exec babel-node",
@@ -42,18 +42,18 @@
     "mocha": "^3.3.0",
     "nodemon": "^1.11.0"
   },
-  "description": "A boilerplate for Mangrove Bots in Node.js.",
+  "description": "A mood bot to display each day the mood's team.",
   "version": "1.0.0",
   "main": "main/index.js",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/MeetMangrove/bot-boilerplate.git"
+    "url": "git+https://github.com/MeetMangrove/mangrove-mood.git"
   },
   "keywords": [],
   "author": "",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/MeetMangrove/bot-boilerplate/issues"
+    "url": "https://github.com/MeetMangrove/mangrove-mood/issues"
   },
-  "homepage": "https://github.com/MeetMangrove/bot-boilerplate#readme"
+  "homepage": "https://github.com/MeetMangrove/mangrove-mood#readme"
 }
