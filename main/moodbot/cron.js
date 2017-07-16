@@ -27,7 +27,7 @@ const askMood = new CronJob({
               if (err) return console.log(err)
 
               convo.addMessage({
-                text: `Hello ${name}! :smile:`,
+                text: `Hello ${name}! :smile:`
               }, 'default')
 
               convo.addQuestion({
@@ -37,7 +37,7 @@ const askMood = new CronJob({
                   convo.gotoThread('comments')
                 } else {
                   convo.addMessage({
-                    text: `This is not a validate Mood, please try again :pray:`,
+                    text: `This is not a validate Mood, please try again :pray:`
                   }, 'default')
                   convo.repeat()
                 }
@@ -46,7 +46,7 @@ const askMood = new CronJob({
               convo.addQuestion({
                 text: `Thanks for giving me your mood!\n
               If you have any feedback or explanation to add,\n
-              please feel free to share it below. Otherwise, just say no.`,
+              please feel free to share it below. Otherwise, just say no.`
               }, (response, convo) => {
                 convo.gotoThread('saved')
               }, { key: 'comment' }, 'comments')
@@ -60,7 +60,7 @@ const askMood = new CronJob({
               })
 
               convo.addMessage({
-                text: `Awesome, it has been successfully saved. See you tomorrow!`,
+                text: `Awesome, it has been successfully saved. See you tomorrow!`
               }, 'saved')
             })
           } catch (e) {

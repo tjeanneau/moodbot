@@ -65,9 +65,9 @@ export const getIdFromName = async (name) => {
 export const saveMood = async (id, level, comment) => {
   const create = Promise.promisify(base(AIRTABLE_MOOD).create)
   await create({
-    "Member": [id],
-    "Level": level,
-    "Comment": comment,
-    "Date": Date.now()
+    'Member': [id],
+    'Level': level,
+    'Comment': comment,
+    'Date': Date.now()
   })
 }
