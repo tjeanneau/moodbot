@@ -15,7 +15,7 @@ import {
 const { CronJob } = cron
 
 const askMood = new CronJob({
-  cronTime: '00 07 11 * * *',
+  cronTime: '00 00 15 * * *',
   onTick: function () {
     _.forEach(bots, async (bot) => {
       const members = await getAllMembers(bot)
