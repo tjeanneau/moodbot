@@ -4,4 +4,4 @@
 
 import 'newrelic'
 import 'babel-polyfill'
-import './moodbot/hears'
+import './moodbot/cron'

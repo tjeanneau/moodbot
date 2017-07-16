@@ -23,7 +23,9 @@
     "bluebird": "^3.5.0",
     "botkit": "^0.5.4",
     "botkit-storage-mongo": "1.0.6",
+    "cron": "1.2.1",
     "dotenv": "4.0.0",
+    "localtunnel": "1.8.3",
     "lodash": "^4.17.4",
     "mongodb": "2.2.28",
     "newrelic": "1.39.1"

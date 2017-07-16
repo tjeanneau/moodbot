@@ -2,12 +2,14 @@
  * Created by thomasjeanneau on 20/03/2017.
  */
 
+import _ from 'lodash'
 import Promise from 'bluebird'
 
 import { base } from './airtable/index'
 
 const {
-  AIRTABLE_MEMBERS
+  AIRTABLE_MEMBERS,
+  AIRTABLE_MOOD
 } = process.env
 
 if (!AIRTABLE_MEMBERS) {
@@ -36,26 +38,36 @@ export const getSlackUser = async (bot, id) => {
   return user
 }
 
-// get member by id
-export const getMember = async (id) => {
-  const findMember = Promise.promisify(base(AIRTABLE_MEMBERS).find)
-  const member = await findMember(id)
-  return member
+// get all slack members
+export const getAllMembers = async (bot) => {
+  const apiUser = Promise.promisifyAll(bot.api.users)
+  const {members} = await apiUser.listAsync({token: bot.config.bot.app_token})
+  _.remove(members, ({ id }) => checkIfBot(bot, id) === true)
+  return members
 }
 
-// reads all members from Airtable, and returns
-// a boolean checking if the current user is an builder or not.
-export const checkIfBuilder = async (bot, message) => {
-  const admins = []
-  const apiUser = Promise.promisifyAll(bot.api.users)
+// check if the id is one of a bot
+export const checkIfBot = async (bot, id) => {
+  if (id === 'USLACKBOT') return true
+  const apiUsers = Promise.promisifyAll(bot.api.users)
+  const {user: {is_bot: isBot}} = await apiUsers.infoAsync({token: bot.config.bot.app_token, user: id})
+  return isBot
+}
+
+export const getIdFromName = async (name) => {
   const records = await _getAllRecords(base(AIRTABLE_MEMBERS).select({
     view: 'Main View',
-    filterByFormula: 'FIND(\'Cofounder\', {Status})'
+    filterByFormula: `{Slack Handle} = '@${name}'`
   }))
-  records.forEach((record) => {
-    const name = record.get('Slack Handle')
-    admins.push(name.replace(/^@/, ''))
+  return records[0].id
+}
+
+export const saveMood = async (id, level, comment) => {
+  const create = Promise.promisify(base(AIRTABLE_MOOD).create)
+  await create({
+    "Member": [id],
+    "Level": level,
+    "Comment": comment,
+    "Date": Date.now()
   })
-  const {user: {name}} = await apiUser.infoAsync({user: message.user})
-  return admins.indexOf(name) >= 0
 }

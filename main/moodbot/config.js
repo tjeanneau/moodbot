@@ -2,24 +2,38 @@
  * Created by thomasjeanneau on 08/02/2017.
  */
 
+import localTunnel from 'localtunnel'
 import Botkit from 'botkit'
 import BotkitStorageMongo from 'botkit-storage-mongo'
 
-const _bots = {}
+require('dotenv').config()
+
+const bots = {}
 const {
   SLACK_CLIENT_ID,
   SLACK_CLIENT_SECRET,
   PORT,
-  MONGO_URL
+  MONGO_URL,
+  NODE_ENV
 } = process.env
 
-if (!SLACK_CLIENT_ID || !SLACK_CLIENT_SECRET || !PORT || !MONGO_URL) {
+if (!SLACK_CLIENT_ID || !SLACK_CLIENT_SECRET || !PORT || !MONGO_URL || !NODE_ENV) {
   console.log('Error: Specify SLACK_CLIENT_ID, SLACK_CLIENT_SECRET, PORT and MONGO_URL in a .env file')
   process.exit(1)
 }
 
+if (NODE_ENV === 'DEVELOPMENT') {
+  const tunnel = localTunnel(PORT, {subdomain: 'moodbot'}, (err, tunnel) => {
+    if (err) console.log(err)
+    console.log(`Bot running at the url: ${tunnel.url}`)
+  })
+  tunnel.on('close', () => {
+    console.log('Tunnel is closed')
+  })
+}
+
 const trackBot = (bot) => {
-  _bots[bot.config.token] = bot
+  bots[bot.config.token] = bot
 }
 
 const mongoStorage = new BotkitStorageMongo({
@@ -36,7 +50,7 @@ const controller = Botkit.slackbot({
 controller.configureSlackApp({
   clientId: SLACK_CLIENT_ID,
   clientSecret: SLACK_CLIENT_SECRET,
-  scopes: ['moodbot', 'chat:write:moodbot', 'groups:history', 'groups:read', 'groups:write', 'users:read', 'users:read.email']
+  scopes: ['bot', 'chat:write:bot', 'users:read']
 })
 
 controller.setupWebserver(PORT, (err) => {
@@ -51,7 +65,7 @@ controller.setupWebserver(PORT, (err) => {
 })
 
 controller.on('create_bot', (bot, config) => {
-  if (_bots[bot.config.token]) {
+  if (bots[bot.config.token]) {
     // already online! do nothing.
   } else {
     bot.startRTM((err) => {
@@ -85,4 +99,4 @@ controller.storage.teams.all((err, teams) => {
   }
 })
 
-export { controller }
+export { controller, bots }

@@ -20,6 +20,7 @@ SLACK_CLIENT_SECRET=***************
 AIRTABLE_API_KEY=***************
 AIRTABLE_BASE_KEY=***************
 AIRTABLE_MEMBERS=***************
+AIRTABLE_MOOD=***************
 NEW_RELIC_LICENSE_KEY=***************
 NEW_RELIC_APP_NAME=***************
 NEW_RELIC_APDEX=***************
