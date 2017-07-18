@@ -15,7 +15,7 @@ import {
 const { CronJob } = cron
 
 const askMood = new CronJob({
-  cronTime: '00 00 15 * * *',
+  cronTime: '00 23 21 * * *',
   onTick: function () {
     _.forEach(bots, async (bot) => {
       const members = await getAllMembers(bot)
@@ -33,7 +33,8 @@ const askMood = new CronJob({
               convo.addQuestion({
                 text: `What is your mood today on a scale from 1 to 10?`
               }, (response, convo) => {
-                if (_.find([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], response)) {
+                const mood = _.find([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], n => n === parseInt(response.text, 10))
+                if (mood) {
                   convo.gotoThread('comments')
                 } else {
                   convo.addMessage({
@@ -41,14 +42,18 @@ const askMood = new CronJob({
                   }, 'default')
                   convo.repeat()
                 }
+                convo.next()
               }, { key: 'level' }, 'default')
 
+              convo.addMessage({
+                text: `Thanks for giving me your mood! :fire:`
+              }, 'comments')
+
               convo.addQuestion({
-                text: `Thanks for giving me your mood!\n
-              If you have any feedback or explanation to add,\n
-              please feel free to share it below. Otherwise, just say no.`
+                text: `If you have any feedback or explanation to add, please feel free to share it below. Otherwise, just say no.`
               }, (response, convo) => {
                 convo.gotoThread('saved')
+                convo.next()
               }, { key: 'comment' }, 'comments')
 
               convo.beforeThread('saved', async function (convo, next) {
@@ -60,7 +65,11 @@ const askMood = new CronJob({
               })
 
               convo.addMessage({
-                text: `Awesome, it has been successfully saved. See you tomorrow!`
+                text: `Awesome, it has been successfully saved! See you tomorrow, take care! :heart:`
+              }, 'saved')
+
+              convo.addMessage({
+                text: `See you tomorrow, take care :heart:`
               }, 'saved')
             })
           } catch (e) {
