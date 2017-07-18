@@ -17,6 +17,7 @@ Create a .env file with the following variables and their values:
 ```bash
 SLACK_CLIENT_ID=***************
 SLACK_CLIENT_SECRET=***************
+SLACK_CHANNEL_GENERAL_ID=***************
 AIRTABLE_API_KEY=***************
 AIRTABLE_BASE_KEY=***************
 AIRTABLE_MEMBERS=***************
