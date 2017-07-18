@@ -38,6 +38,13 @@ export const getSlackUser = async (bot, id) => {
   return user
 }
 
+// get member by id
+export const getMember = async (id) => {
+  const findMember = Promise.promisify(base(AIRTABLE_MEMBERS).find)
+  const member = await findMember(id)
+  return member
+}
+
 // get all slack members
 export const getAllMembers = async (bot) => {
   const apiUser = Promise.promisifyAll(bot.api.users)
@@ -67,7 +74,76 @@ export const saveMood = async (id, level, comment) => {
   await create({
     'Member': [id],
     'Level': parseInt(level, 10),
-    'Comment': comment,
+    'Comment': comment === 'no' ? '' : comment,
     'Date': Date.now()
   })
+}
+
+export const getMoods = async () => {
+  const ping = Date.now() - 86400000
+  const records = await _getAllRecords(base(AIRTABLE_MOOD).select({
+    view: 'Recent, by member',
+    filterByFormula: `{Date} >= ${ping}`
+  }))
+  const list = _.map(records, r => r.fields)
+  const moods = []
+  for (let i = 0; i < list.length; i += 1) {
+    let exist = false
+    for (let j = 0; j < moods.length; j += 1) {
+      if (list[i]['Member'][0] === moods[j]['Member'][0]) {
+        exist = true
+        if (list[i]['Date'] >= moods[j]['Date']) {
+          moods[j] = list[i]
+        }
+      }
+    }
+    if (!exist) moods.push(list[i])
+  }
+  return moods
+}
+
+export const getEmoji = (level) => {
+  switch (level) {
+    case 1:
+    case 2:
+    case 3: {
+      return ':sos:'
+    }
+    case 4:
+    case 5:
+    case 6: {
+      return ':warning:'
+    }
+    case 7: {
+      return ':slightly_smiling_face:'
+    }
+    case 8: {
+      return ':simple_smile:'
+    }
+    case 9: {
+      return ':smile:'
+    }
+    case 10: {
+      return ':sunglasses:'
+    }
+    default: {
+      return ':simple_smile: '
+    }
+  }
+}
+
+export const getColor = (level) => {
+  switch (level) {
+    case 1: return '#B71C1C'
+    case 2: return '#D32F2F'
+    case 3: return '#F44336'
+    case 4: return '#F57F17'
+    case 5: return '#FBC02D'
+    case 6: return '#FFEB3B'
+    case 7: return '#CDDC39'
+    case 8: return '#9CCC65'
+    case 9: return '#7CB342'
+    case 10: return '#558B2F'
+    default: return '#9CCC65'
+  }
 }
