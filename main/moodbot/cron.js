@@ -100,7 +100,7 @@ const askMood = new CronJob({
 })
 
 const sendMood = new CronJob({
-  cronTime: '00 00 19 * * *',
+  cronTime: '00 20 19 * * *',
   onTick: function () {
     _.forEach(bots, async (bot) => {
       try {
@@ -117,11 +117,16 @@ const sendMood = new CronJob({
             'footer': moment(mood['Date']).format('MMM Do [at] h:mm A')
           })
           done()
-        }, () => bot.say({
-          text: 'Hi dream team! Here is your mood daily digest :sparkles:',
-          channel: SLACK_CHANNEL_GENERAL_ID,
-          attachments
-        }))
+        }, () => {
+          bot.say({
+            'text': 'Hi dream team! Here is your mood daily digest :sparkles:',
+            'channel': SLACK_CHANNEL_GENERAL_ID,
+            'attachments': attachments
+          }, (err, res) => {
+            console.log(err)
+            console.log(res)
+          })
+        })
       } catch (e) {
         console.log(e)
         bot.reply({ user: SLACK_CHANNEL_GENERAL_ID }, `Oops..! :sweat_smile: A little error occur: \`${e.message || e.error || e}\``)
