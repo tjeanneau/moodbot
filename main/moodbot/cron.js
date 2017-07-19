@@ -66,7 +66,7 @@ const askMood = new CronJob({
             }, 'comments')
 
             convo.addQuestion({
-              text: `If you have any feedback or explanation to add, please feel free to share it below. Otherwise, just say no.`
+              text: `If you want to add your status as well, please share it below. Otherwise, just say \`no\` to save your answer.`
             }, (response, convo) => {
               convo.gotoThread('saved')
               convo.next()
