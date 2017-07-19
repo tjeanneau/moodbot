@@ -22,8 +22,8 @@ controller.hears(['^Hello$', '^Yo$', '^Hey$', '^Hi$', '^Ouch$'], ['direct_messag
     bot.startConversation(message, function (err, convo) {
       if (err) return console.log(err)
       convo.say(`Hey ${name}!`)
-      convo.say(`I'm the <@moodbot> :smile:`)
-      convo.say(`I will ping you everyday at 3pm to get your mood!`)
+      convo.say(`My name is Rachid, I'm the <@moodbot> :smile:`)
+      convo.say(`I will ping you everyday at 3pm to get your mood! :surfer:`)
     })
   } catch (e) {
     console.log(e)
@@ -37,7 +37,7 @@ controller.hears('[^\n]+', ['direct_message', 'direct_mention'], async (bot, mes
     bot.startConversation(message, function (err, convo) {
       if (err) return console.log(err)
       convo.say(`Sorry ${name}, but I'm too young to understand what you mean :flushed:`)
-      convo.say(`I will ping you everyday at 3pm to get your mood!`)
+      convo.say(`I will ping you everyday at 3pm to get your mood! :surfer:`)
     })
   } catch (e) {
     console.log(e)
