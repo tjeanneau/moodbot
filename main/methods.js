@@ -74,7 +74,8 @@ export const saveMood = async (id, level, comment) => {
   await create({
     'Member': [id],
     'Level': parseInt(level, 10),
-    'Comment': comment === 'no' ? '' : comment,
+    // treat "no" and "No" as empty comments, trimming whitespace
+    'Comment': /^\s*no+\s*$/i.test(comment) ? '' : comment,
     'Date': Date.now()
   })
 }
