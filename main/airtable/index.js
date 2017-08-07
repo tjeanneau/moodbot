@@ -36,9 +36,10 @@ export const _getAllRecords = (select) => {
 export const base = Airtable.base(AIRTABLE_BASE_KEY)
 
 export const getBase = async (teamId) => {
-  const findCompany = Promise.promisify(base('Companies').find)
-  const company = await findCompany({
-    'Team Id': teamId
-  })
-  return Airtable.base(company.fields['Airtable Base'])
+  const records = await _getAllRecords(base('Companies').select({
+    view: 'Main view',
+    filterByFormula: `{Team ID} = '${teamId}'`
+  }))
+  const baseKey = records[0].fields['Airtable Base']
+  return Airtable.base(baseKey)
 }

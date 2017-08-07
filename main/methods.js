@@ -16,7 +16,7 @@ export const getSlackUser = async (bot, id) => {
 
 // get member by id
 export const getMember = async (teamId, id) => {
-  const base = getBase(teamId)
+  const base = await getBase(teamId)
   const findMember = Promise.promisify(base('Users').find)
   const member = await findMember(id)
   return member
@@ -24,45 +24,67 @@ export const getMember = async (teamId, id) => {
 
 // get all slack members
 export const getAllMembers = async (bot) => {
-  const base = getBase(bot.config.id)
+  const registerUsers = []
+  const base = await getBase(bot.config.id)
   const apiUser = Promise.promisifyAll(bot.api.users)
   const {members} = await apiUser.listAsync({token: bot.config.bot.app_token})
   const records = await _getAllRecords(base('Users').select({
     view: 'Main view'
   }))
-  const registerUsers = _.map(records, record => record.fields['Slack Handle'])
-  _.remove(members, ({ name }) => registerUsers.findIndex(name) === -1)
+  records.forEach(function (record) {
+    registerUsers.push(record.get('Slack Handle'))
+  })
+  _.remove(members, ({ name }) => {
+    return registerUsers.indexOf(`@${name}`) === -1
+  })
   return members
 }
 
+// get all slack members
+export const getAllChannels = async (bot) => {
+  const channels = []
+  const base = await getBase(bot.config.id)
+  const records = await _getAllRecords(base('Channels').select({
+    view: 'Main view'
+  }))
+  records.forEach(function (record) {
+    channels.push({
+      name: record.get('Slack ID'),
+      users: record.get('Users')
+    })
+  })
+  return channels
+}
+
 export const getIdFromName = async (teamId, name) => {
-  const base = getBase(teamId)
+  const base = await getBase(teamId)
   const records = await _getAllRecords(base('Users').select({
-    view: 'Main View',
+    view: 'Main view',
     filterByFormula: `{Slack Handle} = '@${name}'`
   }))
   return records[0].id
 }
 
 export const saveMood = async (teamId, id, level, comment) => {
-  const base = getBase(teamId)
+  const base = await getBase(teamId)
   const create = Promise.promisify(base('Moods').create)
   await create({
-    'Member': [id],
+    'User': [id],
     'Level': parseInt(level, 10),
     'Comment': /^\s*no+\s*$/i.test(comment) ? '' : comment,
     'Date': Date.now()
   })
 }
 
-export const getMoods = async (teamId) => {
-  const base = getBase(teamId)
+export const getMoods = async (teamId, users) => {
+  const base = await getBase(teamId)
   const ping = Date.now() - 86400000
   const records = await _getAllRecords(base('Moods').select({
     view: 'Recent, by user',
     filterByFormula: `{Date} >= ${ping}`
   }))
   const list = _.map(records, r => r.fields)
+  _.remove(list, mood => users.indexOf(mood['User'][0]) === -1)
   const moods = []
   for (let i = 0; i < list.length; i += 1) {
     let exist = false
