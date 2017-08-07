@@ -15,19 +15,14 @@ import {
   getMoods,
   getMember,
   getEmoji,
-  getColor
+  getColor,
+  getAllChannels
 } from '../methods'
 
 require('dotenv').config()
 
 const { CronJob } = cron
 const { forEach } = asyncForEach
-const { SLACK_CHANNEL_GENERAL_ID } = process.env
-
-if (!SLACK_CHANNEL_GENERAL_ID) {
-  console.log('Error: Specify NODE_ENV in a .env file')
-  process.exit(1)
-}
 
 const askMood = new CronJob({
   cronTime: '00 00 15 * * *',
@@ -73,10 +68,10 @@ const askMood = new CronJob({
             }, { key: 'comment' }, 'comments')
 
             convo.beforeThread('saved', async function (convo, next) {
-              const id = await getIdFromName(name)
+              const id = await getIdFromName(bot.config.id, name)
               const level = convo.extractResponse('level')
               const comment = convo.extractResponse('comment')
-              await saveMood(id, level, comment)
+              await saveMood(bot.config.id, id, level, comment)
               next()
             })
 
@@ -100,35 +95,39 @@ const askMood = new CronJob({
 })
 
 const sendMood = new CronJob({
-  cronTime: '00 00 19 * * *',
+  cronTime: '00 00 17 * * *',
   onTick: function () {
     _.forEach(bots, async (bot) => {
-      try {
-        const moods = await getMoods()
-        const attachments = []
-        forEach(moods, async function (mood) {
-          const done = this.async()
-          const { fields: user } = await getMember(mood['Member'][0])
-          attachments.push({
-            'title': `<${user['Slack Handle']}> is at ${mood['Level']}/10 ${getEmoji(mood['Level'])}`,
-            'text': mood['Comment'],
-            'color': getColor(mood['Level']),
-            'thumb_url': user['Profile Picture'][0].url,
-            'footer': moment(mood['Date']).format('MMM Do [at] h:mm A')
-          })
-          done()
-        }, () => bot.say({
-          'text': 'Hi dream team! Here is your mood daily digest :sparkles:',
-          'channel': SLACK_CHANNEL_GENERAL_ID,
-          'attachments': attachments
-        }, (err, res) => {
-          console.log(err)
-          console.log(res)
-        }))
-      } catch (e) {
-        console.log(e)
-        bot.reply({ user: SLACK_CHANNEL_GENERAL_ID }, `Oops..! :sweat_smile: A little error occur: \`${e.message || e.error || e}\``)
-      }
+      const channels = await getAllChannels(bot)
+      _.forEach(channels, async ({ name, users }) => {
+        try {
+          const moods = await getMoods(bot.config.id, users)
+          const attachments = []
+          forEach(moods, async function (mood) {
+            const done = this.async()
+            const { fields: user } = await getMember(bot.config.id, mood['Member'][0])
+            attachments.push({
+              'title': `<${user['Slack Handle']}> is at ${mood['Level']}/10 ${getEmoji(mood['Level'])}`,
+              'text': mood['Comment'],
+              'color': getColor(mood['Level']),
+              // TODO: add image from slack
+              // 'thumb_url': user['Profile Picture'][0].url,
+              'footer': moment(mood['Date']).format('MMM Do [at] h:mm A')
+            })
+            done()
+          }, () => bot.say({
+            'text': 'Hi dream team! Here is your mood daily digest :sparkles:',
+            'channel': name,
+            'attachments': attachments
+          }, (err, res) => {
+            console.log(err)
+            console.log(res)
+          }))
+        } catch (e) {
+          console.log(e)
+          bot.reply({ user: name }, `Oops..! :sweat_smile: A little error occur: \`${e.message || e.error || e}\``)
+        }
+      })
     })
   },
   start: false,

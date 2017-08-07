@@ -5,31 +5,7 @@
 import _ from 'lodash'
 import Promise from 'bluebird'
 
-import { base } from './airtable/index'
-
-const {
-  AIRTABLE_MEMBERS,
-  AIRTABLE_MOOD
-} = process.env
-
-if (!AIRTABLE_MEMBERS) {
-  console.log('Error: Specify AIRTABLE_MEMBERS in a .env file')
-  process.exit(1)
-}
-
-// reads all records from a table
-const _getAllRecords = (select) => {
-  return new Promise((resolve, reject) => {
-    let allRecords = []
-    select.eachPage(function page (records, fetchNextPage) {
-      allRecords = allRecords.concat(records)
-      fetchNextPage()
-    }, function done (err) {
-      if (err) return reject(err)
-      resolve(allRecords)
-    })
-  })
-}
+import { getBase, _getAllRecords } from './airtable/index'
 
 // get slack user info by id
 export const getSlackUser = async (bot, id) => {
@@ -39,54 +15,76 @@ export const getSlackUser = async (bot, id) => {
 }
 
 // get member by id
-export const getMember = async (id) => {
-  const findMember = Promise.promisify(base(AIRTABLE_MEMBERS).find)
+export const getMember = async (teamId, id) => {
+  const base = await getBase(teamId)
+  const findMember = Promise.promisify(base('Users').find)
   const member = await findMember(id)
   return member
 }
 
 // get all slack members
 export const getAllMembers = async (bot) => {
+  const registerUsers = []
+  const base = await getBase(bot.config.id)
   const apiUser = Promise.promisifyAll(bot.api.users)
   const {members} = await apiUser.listAsync({token: bot.config.bot.app_token})
-  _.remove(members, ({ id }) => checkIfBot(bot, id) === true)
+  const records = await _getAllRecords(base('Users').select({
+    view: 'Main view'
+  }))
+  records.forEach(function (record) {
+    registerUsers.push(record.get('Slack Handle'))
+  })
+  _.remove(members, ({ name }) => {
+    return registerUsers.indexOf(`@${name}`) === -1
+  })
   return members
 }
 
-// check if the id is one of a bot
-export const checkIfBot = async (bot, id) => {
-  if (id === 'USLACKBOT') return true
-  const apiUsers = Promise.promisifyAll(bot.api.users)
-  const {user: {is_bot: isBot}} = await apiUsers.infoAsync({token: bot.config.bot.app_token, user: id})
-  return isBot
+// get all slack members
+export const getAllChannels = async (bot) => {
+  const channels = []
+  const base = await getBase(bot.config.id)
+  const records = await _getAllRecords(base('Channels').select({
+    view: 'Main view'
+  }))
+  records.forEach(function (record) {
+    channels.push({
+      name: record.get('Slack ID'),
+      users: record.get('Users')
+    })
+  })
+  return channels
 }
 
-export const getIdFromName = async (name) => {
-  const records = await _getAllRecords(base(AIRTABLE_MEMBERS).select({
-    view: 'Main View',
+export const getIdFromName = async (teamId, name) => {
+  const base = await getBase(teamId)
+  const records = await _getAllRecords(base('Users').select({
+    view: 'Main view',
     filterByFormula: `{Slack Handle} = '@${name}'`
   }))
   return records[0].id
 }
 
-export const saveMood = async (id, level, comment) => {
-  const create = Promise.promisify(base(AIRTABLE_MOOD).create)
+export const saveMood = async (teamId, id, level, comment) => {
+  const base = await getBase(teamId)
+  const create = Promise.promisify(base('Moods').create)
   await create({
-    'Member': [id],
+    'User': [id],
     'Level': parseInt(level, 10),
-    // treat "no" and "No" as empty comments, trimming whitespace
     'Comment': /^\s*no+\s*$/i.test(comment) ? '' : comment,
     'Date': Date.now()
   })
 }
 
-export const getMoods = async () => {
+export const getMoods = async (teamId, users) => {
+  const base = await getBase(teamId)
   const ping = Date.now() - 86400000
-  const records = await _getAllRecords(base(AIRTABLE_MOOD).select({
-    view: 'Recent, by member',
+  const records = await _getAllRecords(base('Moods').select({
+    view: 'Recent, by user',
     filterByFormula: `{Date} >= ${ping}`
   }))
   const list = _.map(records, r => r.fields)
+  _.remove(list, mood => users.indexOf(mood['User'][0]) === -1)
   const moods = []
   for (let i = 0; i < list.length; i += 1) {
     let exist = false

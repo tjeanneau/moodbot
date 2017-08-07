@@ -5,6 +5,9 @@
 import localTunnel from 'localtunnel'
 import Botkit from 'botkit'
 import BotkitStorageMongo from 'botkit-storage-mongo'
+import Promise from 'bluebird'
+
+import { base } from '../airtable/index'
 
 require('dotenv').config()
 
@@ -13,17 +16,17 @@ const {
   SLACK_CLIENT_ID,
   SLACK_CLIENT_SECRET,
   PORT,
-  MONGO_URL,
+  MONGODB_URI,
   NODE_ENV
 } = process.env
 
-if (!SLACK_CLIENT_ID || !SLACK_CLIENT_SECRET || !PORT || !MONGO_URL || !NODE_ENV) {
+if (!SLACK_CLIENT_ID || !SLACK_CLIENT_SECRET || !PORT || !MONGODB_URI || !NODE_ENV) {
   console.log('Error: Specify SLACK_CLIENT_ID, SLACK_CLIENT_SECRET, PORT and MONGO_URL in a .env file')
   process.exit(1)
 }
 
 if (NODE_ENV === 'DEVELOPMENT') {
-  const tunnel = localTunnel(PORT, {subdomain: 'moodbot'}, (err, tunnel) => {
+  const tunnel = localTunnel(PORT, {subdomain: 'devmoodbot'}, (err, tunnel) => {
     if (err) console.log(err)
     console.log(`Bot running at the url: ${tunnel.url}`)
   })
@@ -37,7 +40,7 @@ const trackBot = (bot) => {
 }
 
 const mongoStorage = new BotkitStorageMongo({
-  mongoUri: MONGO_URL
+  mongoUri: MONGODB_URI
 })
 
 const controller = Botkit.slackbot({
@@ -64,22 +67,29 @@ controller.setupWebserver(PORT, (err) => {
     })
 })
 
-controller.on('create_bot', (bot, config) => {
+controller.on('create_bot', async (bot, config) => {
   if (bots[bot.config.token]) {
     // already online! do nothing.
   } else {
+    const create = Promise.promisify(base('Companies').create)
+    await create({
+      'Name': bot.config.name,
+      'Team ID': bot.config.id,
+      'Created By': bot.config.createdBy,
+      'Url': bot.config.url
+    })
     bot.startRTM((err) => {
       if (!err) trackBot(bot)
       bot.startPrivateConversation({user: config.createdBy}, (err, convo) => {
         if (err) return console.log(err)
-        convo.say('I am a moodbot that has just joined your team')
+        convo.say('Hey! I am the <@moodbot> that has just joined your team :smile:')
         convo.say('You must now /invite me to a channel so that I can be of use!')
       })
     })
   }
 })
 
-controller.on('rtm_open', () => {
+controller.on('rtm_open', async (bot) => {
   console.log('** The RTM api just connected!')
 })
 
