@@ -5,7 +5,7 @@
 import _ from 'lodash'
 import Promise from 'bluebird'
 
-import { base, _getAllRecords } from './airtable/index'
+import { getBase, _getAllRecords } from './airtable/index'
 
 // get slack user info by id
 export const getSlackUser = async (bot, id) => {
@@ -15,7 +15,8 @@ export const getSlackUser = async (bot, id) => {
 }
 
 // get member by id
-export const getMember = async (id) => {
+export const getMember = async (teamId, id) => {
+  const base = getBase(teamId)
   const findMember = Promise.promisify(base('Users').find)
   const member = await findMember(id)
   return member
@@ -23,21 +24,19 @@ export const getMember = async (id) => {
 
 // get all slack members
 export const getAllMembers = async (bot) => {
+  const base = getBase(bot.config.id)
   const apiUser = Promise.promisifyAll(bot.api.users)
   const {members} = await apiUser.listAsync({token: bot.config.bot.app_token})
-  _.remove(members, ({ id }) => checkIfBot(bot, id) === true)
+  const records = await _getAllRecords(base('Users').select({
+    view: 'Main view'
+  }))
+  const registerUsers = _.map(records, record => record.fields['Slack Handle'])
+  _.remove(members, ({ name }) => registerUsers.findIndex(name) === -1)
   return members
 }
 
-// check if the id is one of a bot
-export const checkIfBot = async (bot, id) => {
-  if (id === 'USLACKBOT') return true
-  const apiUsers = Promise.promisifyAll(bot.api.users)
-  const {user: {is_bot: isBot}} = await apiUsers.infoAsync({token: bot.config.bot.app_token, user: id})
-  return isBot
-}
-
-export const getIdFromName = async (name) => {
+export const getIdFromName = async (teamId, name) => {
+  const base = getBase(teamId)
   const records = await _getAllRecords(base('Users').select({
     view: 'Main View',
     filterByFormula: `{Slack Handle} = '@${name}'`
@@ -45,18 +44,19 @@ export const getIdFromName = async (name) => {
   return records[0].id
 }
 
-export const saveMood = async (id, level, comment) => {
+export const saveMood = async (teamId, id, level, comment) => {
+  const base = getBase(teamId)
   const create = Promise.promisify(base('Moods').create)
   await create({
     'Member': [id],
     'Level': parseInt(level, 10),
-    // treat "no" and "No" as empty comments, trimming whitespace
     'Comment': /^\s*no+\s*$/i.test(comment) ? '' : comment,
     'Date': Date.now()
   })
 }
 
-export const getMoods = async () => {
+export const getMoods = async (teamId) => {
+  const base = getBase(teamId)
   const ping = Date.now() - 86400000
   const records = await _getAllRecords(base('Moods').select({
     view: 'Recent, by user',

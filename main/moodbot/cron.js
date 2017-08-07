@@ -67,10 +67,10 @@ const askMood = new CronJob({
             }, { key: 'comment' }, 'comments')
 
             convo.beforeThread('saved', async function (convo, next) {
-              const id = await getIdFromName(name)
+              const id = await getIdFromName(bot.config.id, name)
               const level = convo.extractResponse('level')
               const comment = convo.extractResponse('comment')
-              await saveMood(id, level, comment)
+              await saveMood(bot.config.id, id, level, comment)
               next()
             })
 
@@ -98,11 +98,11 @@ const sendMood = new CronJob({
   onTick: function () {
     _.forEach(bots, async (bot) => {
       try {
-        const moods = await getMoods()
+        const moods = await getMoods(bot.config.id)
         const attachments = []
         forEach(moods, async function (mood) {
           const done = this.async()
-          const { fields: user } = await getMember(mood['Member'][0])
+          const { fields: user } = await getMember(bot.config.id, mood['Member'][0])
           attachments.push({
             'title': `<${user['Slack Handle']}> is at ${mood['Level']}/10 ${getEmoji(mood['Level'])}`,
             'text': mood['Comment'],

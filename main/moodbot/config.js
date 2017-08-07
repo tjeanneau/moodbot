@@ -82,7 +82,7 @@ controller.on('create_bot', async (bot, config) => {
       if (!err) trackBot(bot)
       bot.startPrivateConversation({user: config.createdBy}, (err, convo) => {
         if (err) return console.log(err)
-        convo.say('I am the <@moodbot> that has just joined your team')
+        convo.say('Hey! I am the <@moodbot> that has just joined your team :smile:')
         convo.say('You must now /invite me to a channel so that I can be of use!')
       })
     })
