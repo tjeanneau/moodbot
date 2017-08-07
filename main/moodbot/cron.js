@@ -22,12 +22,6 @@ require('dotenv').config()
 
 const { CronJob } = cron
 const { forEach } = asyncForEach
-const { SLACK_CHANNEL_GENERAL_ID } = process.env
-
-if (!SLACK_CHANNEL_GENERAL_ID) {
-  console.log('Error: Specify NODE_ENV in a .env file')
-  process.exit(1)
-}
 
 const askMood = new CronJob({
   cronTime: '00 00 15 * * *',

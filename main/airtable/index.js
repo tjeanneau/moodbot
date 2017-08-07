@@ -1,4 +1,5 @@
 import Airtable from 'airtable'
+import Promise from 'bluebird'
 
 require('dotenv').config()
 
@@ -17,5 +18,27 @@ Airtable.configure({
   apiKey: AIRTABLE_API_KEY
 })
 
+// reads all records from a table
+export const _getAllRecords = (select) => {
+  return new Promise((resolve, reject) => {
+    let allRecords = []
+    select.eachPage(function page (records, fetchNextPage) {
+      allRecords = allRecords.concat(records)
+      fetchNextPage()
+    }, function done (err) {
+      if (err) return reject(err)
+      resolve(allRecords)
+    })
+  })
+}
+
 // allows accessing tables directly
 export const base = Airtable.base(AIRTABLE_BASE_KEY)
+
+export const getBase = async (teamId) => {
+  const findCompany = Promise.promisify(base('Companies').find)
+  const company = await findCompany({
+    'Team Id': teamId
+  })
+  return Airtable.base(company.fields['Airtable Base'])
+}

@@ -5,31 +5,7 @@
 import _ from 'lodash'
 import Promise from 'bluebird'
 
-import { base } from './airtable/index'
-
-const {
-  AIRTABLE_MEMBERS,
-  AIRTABLE_MOOD
-} = process.env
-
-if (!AIRTABLE_MEMBERS) {
-  console.log('Error: Specify AIRTABLE_MEMBERS in a .env file')
-  process.exit(1)
-}
-
-// reads all records from a table
-const _getAllRecords = (select) => {
-  return new Promise((resolve, reject) => {
-    let allRecords = []
-    select.eachPage(function page (records, fetchNextPage) {
-      allRecords = allRecords.concat(records)
-      fetchNextPage()
-    }, function done (err) {
-      if (err) return reject(err)
-      resolve(allRecords)
-    })
-  })
-}
+import { base, _getAllRecords } from './airtable/index'
 
 // get slack user info by id
 export const getSlackUser = async (bot, id) => {
@@ -40,7 +16,7 @@ export const getSlackUser = async (bot, id) => {
 
 // get member by id
 export const getMember = async (id) => {
-  const findMember = Promise.promisify(base(AIRTABLE_MEMBERS).find)
+  const findMember = Promise.promisify(base('Users').find)
   const member = await findMember(id)
   return member
 }
@@ -62,7 +38,7 @@ export const checkIfBot = async (bot, id) => {
 }
 
 export const getIdFromName = async (name) => {
-  const records = await _getAllRecords(base(AIRTABLE_MEMBERS).select({
+  const records = await _getAllRecords(base('Users').select({
     view: 'Main View',
     filterByFormula: `{Slack Handle} = '@${name}'`
   }))
@@ -70,7 +46,7 @@ export const getIdFromName = async (name) => {
 }
 
 export const saveMood = async (id, level, comment) => {
-  const create = Promise.promisify(base(AIRTABLE_MOOD).create)
+  const create = Promise.promisify(base('Moods').create)
   await create({
     'Member': [id],
     'Level': parseInt(level, 10),
@@ -82,8 +58,8 @@ export const saveMood = async (id, level, comment) => {
 
 export const getMoods = async () => {
   const ping = Date.now() - 86400000
-  const records = await _getAllRecords(base(AIRTABLE_MOOD).select({
-    view: 'Recent, by member',
+  const records = await _getAllRecords(base('Moods').select({
+    view: 'Recent, by user',
     filterByFormula: `{Date} >= ${ping}`
   }))
   const list = _.map(records, r => r.fields)
