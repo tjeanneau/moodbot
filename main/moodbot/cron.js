@@ -95,11 +95,13 @@ const askMood = new CronJob({
 })
 
 const sendMood = new CronJob({
-  cronTime: '00 23 18 * * *',
+  cronTime: '00 00 19 * * *',
   onTick: function () {
     _.forEach(bots, async (bot) => {
       const channels = await getAllChannels(bot)
+      console.log(channels)
       _.forEach(channels, async ({ name, users }) => {
+        console.log(name, users)
         try {
           const moods = await getMoods(bot.config.id, users)
           const attachments = []
