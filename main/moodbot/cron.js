@@ -95,7 +95,7 @@ const askMood = new CronJob({
 })
 
 const sendMood = new CronJob({
-  cronTime: '00 00 19 * * *',
+  cronTime: '00 23 18 * * *',
   onTick: function () {
     _.forEach(bots, async (bot) => {
       const channels = await getAllChannels(bot)
