@@ -89,7 +89,7 @@ export const getMoods = async (teamId, users) => {
   for (let i = 0; i < list.length; i += 1) {
     let exist = false
     for (let j = 0; j < moods.length; j += 1) {
-      if (list[i]['Member'][0] === moods[j]['Member'][0]) {
+      if (list[i]['User'][0] === moods[j]['User'][0]) {
         exist = true
         if (list[i]['Date'] >= moods[j]['Date']) {
           moods[j] = list[i]
