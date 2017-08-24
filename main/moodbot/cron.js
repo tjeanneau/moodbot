@@ -25,7 +25,7 @@ const { CronJob } = cron
 const { forEach } = asyncForEach
 
 const askMood = new CronJob({
-  cronTime: '00 00 15 * * *',
+  cronTime: '00 00 15 * * 1-5',
   onTick: function () {
     _.forEach(bots, async (bot) => {
       const members = await getAllMembers(bot)
@@ -95,19 +95,17 @@ const askMood = new CronJob({
 })
 
 const sendMood = new CronJob({
-  cronTime: '00 00 19 * * *',
+  cronTime: '00 00 19 * * 1-5',
   onTick: function () {
     _.forEach(bots, async (bot) => {
       const channels = await getAllChannels(bot)
-      console.log(channels)
       _.forEach(channels, async ({ name, users }) => {
-        console.log(name, users)
         try {
           const moods = await getMoods(bot.config.id, users)
           const attachments = []
           forEach(moods, async function (mood) {
             const done = this.async()
-            const { fields: user } = await getMember(bot.config.id, mood['Member'][0])
+            const { fields: user } = await getMember(bot.config.id, mood['User'][0])
             attachments.push({
               'title': `<${user['Slack Handle']}> is at ${mood['Level']}/10 ${getEmoji(mood['Level'])}`,
               'text': mood['Comment'],
