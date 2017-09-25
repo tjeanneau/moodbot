@@ -47,13 +47,13 @@
   "main": "main/index.js",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/MeetMangrove/mangrove-mood.git"
+    "url": "git+https://bitbucket.org/mangrove_io/moodbot.git"
   },
   "keywords": [],
   "author": "",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/MeetMangrove/mangrove-mood/issues"
+    "url": "https://bitbucket.org/mangrove_io/moodbot/issues"
   },
-  "homepage": "https://github.com/MeetMangrove/mangrove-mood#readme"
+  "homepage": "https://bitbucket.org/mangrove_io/moodbot#readme"
 }
