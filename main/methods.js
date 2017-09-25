@@ -29,7 +29,8 @@ export const getAllMembers = async (bot) => {
   const apiUser = Promise.promisifyAll(bot.api.users)
   const {members} = await apiUser.listAsync({token: bot.config.bot.app_token})
   const records = await _getAllRecords(base('Users').select({
-    view: 'Main view'
+    view: 'Main view',
+    filterByFormula: '{Moodbot Applicant}=1'
   }))
   records.forEach(function (record) {
     registerUsers.push(record.get('Slack Handle'))
