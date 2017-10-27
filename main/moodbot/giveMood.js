@@ -29,7 +29,7 @@ export default (teamId, convo, name) => {
   }, 'comments')
 
   convo.addQuestion({
-    text: `If you want to add your status as well, please share it below. Otherwise, just say \`no\` to save your answer.`
+    text: `To share your mood with the team, say \`share\` or leave a comment! Otherwise I won't save your answer :crying_cat_face: `
   }, (response, convo) => {
     convo.gotoThread('saved')
     convo.next()

@@ -25,7 +25,7 @@
     "botkit-storage-mongo": "1.0.6",
     "cron": "1.2.1",
     "dotenv": "4.0.0",
-    "localtunnel": "1.8.3",
+    "i18n": "0.8.3",
     "lodash": "4.17.4",
     "moment": "2.18.1",
     "mongodb": "2.2.28"
@@ -39,6 +39,7 @@
     "eslint-plugin-node": "4.2.2",
     "eslint-plugin-promise": "3.5.0",
     "eslint-plugin-standard": "3.0.1",
+    "localtunnel": "1.8.3",
     "mocha": "3.5.0",
     "nodemon": "^1.11.0"
   },
