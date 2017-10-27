@@ -72,7 +72,7 @@ export const saveMood = async (teamId, id, level, comment) => {
   await create({
     'User': [id],
     'Level': parseInt(level, 10),
-    'Comment': /^\s*no+\s*$/i.test(comment) ? '' : comment,
+    'Comment': /^\s*share+\s*$/i.test(comment) ? '' : comment,
     'Date': Date.now()
   })
 }
